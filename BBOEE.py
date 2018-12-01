@@ -97,13 +97,13 @@ def BBOEE(objf,lb,ub,noOfDimensions,populationSize,noOfIterations):
 
     # Defining the loop
     for l in range(noOfIterations):
-        selected = 0
-        selectedList = []
-        while selected < partition:
-            index = np.random.randint(0,populationSize)
-            if index not in selectedList:
-                selectedList.append(index)
-                selected = selected+1
+        # selected = 0
+        # selectedList = []
+        # while selected < partition:
+        #     index = np.random.randint(0,populationSize)
+        #     if index not in selectedList:
+        #         selectedList.append(index)
+        #         selected = selected+1
 
         # Defining the Elite Solutions
         for j in range(Keep):

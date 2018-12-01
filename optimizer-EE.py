@@ -53,7 +53,7 @@ NumOfRuns=30
 
 # Select general parameters for all optimizers (population size, number of iterations)
 PopulationSize = 50
-Iterations= 50
+Iterations= 1000
 
 #Export results ?
 # Export=True
