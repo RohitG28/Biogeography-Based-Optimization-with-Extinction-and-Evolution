@@ -86,6 +86,10 @@ def BBOEE(objf,lb,ub,noOfDimensions,populationSize,noOfIterations):
         mu[i] = (1 - ((i+1)/populationSize)) + c/(i+1);
         lambda1[i] = ((i+1)/populationSize)*((i+1)*(populationSize-(i+1))/populationSize**2) + 2*((populationSize*(i+1))**0.5);
 
+    # for i in range(populationSize):
+    #     mu[i] = (populationSize + 1 - (i)) / (populationSize + 1)
+    #     lambda1[i] = 1 - mu[i]
+
     print("BBO is optimizing  \""+objf.__name__+"\"")    
     
     timerStart=time.time() 
@@ -97,47 +101,77 @@ def BBOEE(objf,lb,ub,noOfDimensions,populationSize,noOfIterations):
 
     # Defining the loop
     for l in range(noOfIterations):
-        # selected = 0
-        # selectedList = []
-        # while selected < partition:
-        #     index = np.random.randint(0,populationSize)
-        #     if index not in selectedList:
-        #         selectedList.append(index)
-        #         selected = selected+1
+        selected = 0
+        selectedList = []
+        while selected < partition:
+            index = np.random.randint(0,populationSize-1)
+            if index not in selectedList:
+                selectedList.append(index)
+                selected = selected+1
 
         # Defining the Elite Solutions
         for j in range(Keep):
             EliteSolution[j,:]=population[j,:]
             EliteCost[j]=fit[j]
 
-        # Performing Migration operator 
+        # Performing Migration operator on Group A 
         for k in range(populationSize):
-            r1,r2,r3 = generateRandomNums(populationSize,k)
-            jRandom = random.randint(0,noOfDimensions)
-            for j in range(noOfDimensions):
-                if random.random() < lambda1[k]:
-                    # if j == jRandom:
-                    #     Island[k,j] = population[r1,j] + random.random()*(population[r2,j]-population[r3,j])
-                    # else:
-                        # Performing Roulette Wheel
-                        ###############################################################################
+            if k not in selectedList:
+                # r1,r2,r3 = generateRandomNums(populationSize,k)
+                # jRandom = random.randint(0,noOfDimensions)
+                for j in range(noOfDimensions):
+                    if random.random() < lambda1[k]:
                         RandomNum = random.random() * sum(mu);
                         Select = mu[0];
                         SelectIndex = 0;
                         while (RandomNum > Select) and (SelectIndex < (populationSize-1)):
                             SelectIndex = SelectIndex + 1;
                             Select = Select + mu[SelectIndex];
-                    
-                        Island[k,j] = population[SelectIndex,j]
+                        r = random.randint(0,populationSize-1)
+                        while r==k or r==SelectIndex:
+                            r = random.randint(0,populationSize-1)
+
+                        Island[k,j] = population[SelectIndex,j] + random.uniform(-1,1)*(population[SelectIndex,j] - population[r,j])
+                    else:
+                        Island[k,j] = population[k,j]
+
+        # Performing Migration operator on Group B
+        random.shuffle(selectedList)
+        for k in range(len(selectedList)):
+            for j in range(noOfDimensions):
+                if random.random() < lambda1[k]:
+                # if j == jRandom:
+                #     Island[k,j] = population[r1,j] + random.random()*(population[r2,j]-population[r3,j])
+                # else:
+                # Performing Roulette Wheel
+                ###############################################################################
+                    if k == 0:
+                        previous = len(selectedList)-1
+                        next1 = k+1
+                    elif k == len(selectedList)-1:
+                        previous = k-1
+                        next1 = 0
+                    else: 
+                        previous = k-1
+                        next1 = k+1
+
+                    if mu[selectedList[previous]] > mu[selectedList[next1]]:
+                        SelectIndex = selectedList[previous]
+                    else: 
+                        SelectIndex = selectedList[next1]
+
+                    if random.random() < mu[SelectIndex]:
+                        r = random.randint(0,populationSize-1)
+
+                        while r==k or r==SelectIndex:
+                            r = random.randint(0,populationSize-1)
+
+                        Island[k,j] = population[SelectIndex,j] + random.uniform(-1,1)*(population[SelectIndex,j] - population[r,j])
+                    else:
+                        Island[k,j] = population[k,j]
                 else:
                     Island[k,j] = population[k,j]
 
-        # Performing Mutation
-        # for k in range(populationSize):
-        #     for j in range(noOfDimensions):
-        #         if pmutate > random.random():
-        #             ########################################################### gaussian mutation operator
-        #             Island[k,j] = lb + (ub-lb) * random.random();
 
         # Performing the bound checking
         for i in range(populationSize):
@@ -192,9 +226,9 @@ def BBOEE(objf,lb,ub,noOfDimensions,populationSize,noOfIterations):
         HSI = normalizedFit
         HSI = np.floor(populationSize*HSI)
 
-        for i in range(populationSize):
-            mu[i] = (1 - ((HSI[i]+1)/populationSize)) + c/(HSI[i]+1);
-            lambda1[i] = ((HSI[i]+1)/populationSize)*((HSI[i]+1)*(populationSize-(HSI[i]+1))/populationSize**2) + 2*((populationSize*(HSI[i]+1))**0.5);
+        # for i in range(populationSize):
+        #     mu[i] = (1 - ((HSI[i]+1)/populationSize)) + c/(HSI[i]+1);
+        #     lambda1[i] = ((HSI[i]+1)/populationSize)*((HSI[i]+1)*(populationSize-(HSI[i]+1))/populationSize**2) + 2*((populationSize*(HSI[i]+1))**0.5);
 
         # Displaying the best fitness of each iteration
         print(['At iteration '+ str(l+1)+ ' the best fitness is '+ str(gBestScore)]);
